@@ -358,7 +358,10 @@ Qed.
 Theorem ev_double : forall n,
   ev (double n).
 Proof.
-  (* FILL IN HERE *) Admitted.
+  intros n. induction n as [| n' Hn'].
+  - simpl. apply ev_0.
+  - simpl. apply ev_SS. apply Hn'.
+  (* FILL IN HERE *) Qed.
 (** [] *)
 
 (* ################################################################# *)
@@ -478,7 +481,9 @@ Proof.
 Theorem SSSSev__even : forall n,
   ev (S (S (S (S n)))) -> ev n.
 Proof.
-  (* FILL IN HERE *) Admitted.
+  intros n H. inversion H as [| n1 H1 Eq1].
+  inversion H1 as [| n2 H2 Eq2]. apply H2.
+  (* FILL IN HERE *) Qed.
 (** [] *)
 
 (** **** Exercise: 1 star, standard (ev5_nonsense)
@@ -488,7 +493,12 @@ Proof.
 Theorem ev5_nonsense :
   ev 5 -> 2 + 2 = 9.
 Proof.
-  (* FILL IN HERE *) Admitted.
+  intros E.
+  inversion E as [| n E1 H1].
+  inversion E1 as [| n' E2 H2].
+  apply one_not_even in E2.
+  destruct E2.
+  (* FILL IN HERE *) Qed.
 (** [] *)
 
 (** The [inversion] tactic does quite a bit of work. For
@@ -652,7 +662,10 @@ Qed.
 (** **** Exercise: 2 stars, standard (ev_sum) *)
 Theorem ev_sum : forall n m, ev n -> ev m -> ev (n + m).
 Proof.
-  (* FILL IN HERE *) Admitted.
+  intros n m Hn. induction Hn as [| n' Hn' IH].
+  - simpl. intros Hm. apply Hm.
+  - simpl. intros Hm. apply IH in Hm. apply ev_SS in Hm. apply Hm.
+  (* FILL IN HERE *) Qed.
 (** [] *)
 
 (** **** Exercise: 4 stars, advanced, optional (ev'_ev)
