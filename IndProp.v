@@ -1475,13 +1475,19 @@ Qed.
 Lemma empty_is_empty : forall T (s : list T),
   ~ (s =~ EmptySet).
 Proof.
-  (* FILL IN HERE *) Admitted.
+  intros T s H.
+  inversion H.
+  (* FILL IN HERE *) Qed.
 
 Lemma MUnion' : forall T (s : list T) (re1 re2 : reg_exp T),
   s =~ re1 \/ s =~ re2 ->
   s =~ Union re1 re2.
 Proof.
-  (* FILL IN HERE *) Admitted.
+  intros T s re1 re2.
+  intros H. destruct H as [H1 |H2].
+  - apply MUnionL. apply H1.
+  - apply MUnionR. apply H2. 
+  (* FILL IN HERE *) Qed.
 
 (** The next lemma is stated in terms of the [fold] function from the
     [Poly] chapter: If [ss : list (list T)] represents a sequence of
@@ -1492,7 +1498,14 @@ Lemma MStar' : forall T (ss : list (list T)) (re : reg_exp T),
   (forall s, In s ss -> s =~ re) ->
   fold app ss [] =~ Star re.
 Proof.
-  (* FILL IN HERE *) Admitted.
+  intros T ss re H.
+  induction ss as [| x t IH].
+  - unfold fold. apply MStar0.
+  - simpl. assert (G: In x (x::t)). { simpl. left. reflexivity. }
+    apply (H x) in G. apply MStarApp.
+    + apply G.
+    + apply IH. intros s. intros Hst. apply H. simpl. right. apply Hst.
+  (* FILL IN HERE *) Qed.
 (** [] *)
 
 (** Since the definition of [exp_match] has a recursive
@@ -1581,13 +1594,47 @@ Qed.
     regular expression matches some string. Prove that your function
     is correct. *)
 
-Fixpoint re_not_empty {T : Type} (re : reg_exp T) : bool
-  (* REPLACE THIS LINE WITH ":= _your_definition_ ." *). Admitted.
+Fixpoint re_not_empty {T : Type} (re : reg_exp T) : bool :=
+  match re with 
+  | EmptySet => false
+  | EmptyStr => true
+  | Char _ => true
+  | App re1 re2 => andb (re_not_empty re1) (re_not_empty re2)
+  | Union re1 re2 => orb (re_not_empty re1) (re_not_empty re2)
+  | Star _ => true
+  end.
+  (* REPLACE THIS LINE WITH ":= _your_definition_ ." *)
 
 Lemma re_not_empty_correct : forall T (re : reg_exp T),
   (exists s, s =~ re) <-> re_not_empty re = true.
 Proof.
-  (* FILL IN HERE *) Admitted.
+  intros T re.
+  split.
+  - intros H. destruct H as [s E].
+    induction E as [ | x'
+        | s1 re1 s2 re2 Hmatch1 IH1 Hmatch2 IH2
+        | s1 re1 re2 Hmatch IH | re1 s2 re2 Hmatch IH
+        | re | s1 s2 re Hmatch1 IH1 Hmatch2 IH2].
+    + simpl. reflexivity.
+    + simpl. reflexivity.
+    + simpl. rewrite IH1,IH2. simpl. reflexivity.
+    + simpl. rewrite IH. simpl. reflexivity.
+    + simpl. rewrite IH. simpl. apply orb_true_iff. right. reflexivity.
+    + simpl. reflexivity.
+    + simpl. reflexivity.
+  - intros H. induction re as [| | t | r1 IH1 r2 IH2 | r1 IH1 r2 IH2 | r IH].
+    + simpl in H. discriminate H.
+    + simpl in H. exists []. apply MEmpty.
+    + exists [t]. apply MChar.
+    + simpl in H. apply andb_true_iff in H. destruct H as [H1 H2].
+      apply IH1 in H1. destruct H1 as [s1 E1].
+      apply IH2 in H2. destruct H2 as [s2 E2].
+      exists (s1 ++ s2). apply MApp. apply E1. apply E2.
+    + simpl in H. apply orb_true_iff in H. destruct H as [H1 | H2].
+      * apply IH1 in H1. destruct H1 as [s1 E1].  exists s1. apply MUnionL. apply E1.
+      * apply IH2 in H2. destruct H2 as [s2 E2].  exists s2. apply MUnionR. apply E2.
+    + exists []. apply MStar0.
+  (* FILL IN HERE *) Qed.
 (** [] *)
 
 (* ================================================================= *)
@@ -1723,7 +1770,29 @@ Lemma MStar'' : forall T (s : list T) (re : reg_exp T),
     s = fold app ss []
     /\ forall s', In s' ss -> s' =~ re.
 Proof.
-  (* FILL IN HERE *) Admitted.
+  intros T s re H.
+  remember (Star re) as re'.
+  induction H as [|x'|s1 re1 s2' re2 Hmatch1 IH1 Hmatch2 IH2
+        |s1 re1 re2 Hmatch IH|re1 s2' re2 Hmatch IH
+        |re''|s1 s2' r Hmatch1 IH1 Hmatch2 IH2].
+  - discriminate Heqre'.
+  - discriminate Heqre'.
+  - discriminate Heqre'.
+  - discriminate Heqre'.
+  - discriminate Heqre'.
+  - exists []. simpl. split. reflexivity. intros s' H'. destruct H'.
+  - inversion Heqre'. rewrite H0 in Hmatch1. rewrite H0 in Hmatch2.
+    apply IH2 in Heqre'. destruct Heqre' as [ss0 [H1 H2]].
+    exists (s1::ss0). simpl. split.
+    + rewrite H1. reflexivity.
+    + intros s' [Ht1 | Ht2].
+      * rewrite Ht1 in Hmatch1. apply Hmatch1.
+      * apply H2 in Ht2. apply Ht2.
+  (* FILL IN HERE *) Qed.
+
+(** "Next Time !!!!!! Here Starts!!!" **)
+
+
 (** [] *)
 
 (** **** Exercise: 5 stars, advanced (weak_pumping)
