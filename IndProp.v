@@ -1925,8 +1925,56 @@ Proof.
        | re | s1 s2 re Hmatch1 IH1 Hmatch2 IH2 ].
   - (* MEmpty *)
     simpl. intros contra. inversion contra.
-  (* FILL IN HERE *) Admitted.
-(** [] *)
+  - (* MChar *)
+    simpl. intros contra. inversion contra. inversion H0.
+  - (* MApp *)
+    simpl. rewrite app_length. intros H. 
+    apply add_le_cases in H. destruct H as [H1 | H2].
+    + apply IH1 in H1. destruct H1 as [t1 [t2 [t3 E]]].
+      exists t1. exists t2. exists (t3++s2). destruct E as [E1 [E2 E3]].
+      split. { rewrite E1. rewrite app_assoc. rewrite app_assoc. rewrite app_assoc. reflexivity. }
+      { split. apply E2. assert (G: forall s, s =~ re1 -> s ++ s2 =~ App re1 re2). { 
+          intros s Hs. apply MApp. apply Hs. apply Hmatch2.
+         } intros m. rewrite app_assoc. rewrite app_assoc.
+           apply G with (s := ((t1 ++ napp m t2) ++ t3)). rewrite <- app_assoc. apply E3. 
+      }
+    + apply IH2 in H2. destruct H2 as [t1 [t2 [t3 E]]].
+      exists (s1++t1). exists t2. exists t3. destruct E as [E1 [E2 E3]].
+      split. { rewrite <- app_assoc. rewrite E1. reflexivity. } { split. apply E2. 
+      intros m. rewrite <- app_assoc. apply MApp. apply Hmatch1. apply E3.
+       }
+  - (* MUnionL *)
+    simpl. intros H. 
+    assert (G: pumping_constant re1 <= pumping_constant re1 + pumping_constant re2). 
+    { apply le_plus_l. }
+    assert (G' : pumping_constant re1 <= length s1).
+    { apply le_trans with (n := pumping_constant re1 + pumping_constant re2). apply G. apply H. }
+    apply IH in G'. destruct G' as [t1 [t2 [t3 E]]].
+    exists t1. exists t2. exists t3. destruct E as [E1 [E2 E3]].
+    split. apply E1. split. apply E2. intros m. apply MUnionL. apply E3.
+  - (* MUnionR *)
+    simpl. intros H. 
+    assert (G: pumping_constant re2 <= pumping_constant re1 + pumping_constant re2). 
+    { rewrite add_comm. apply le_plus_l. }
+    assert (G' : pumping_constant re2 <= length s2).
+    { apply le_trans with (n := pumping_constant re1 + pumping_constant re2). apply G. apply H. }
+    apply IH in G'. destruct G' as [t1 [t2 [t3 E]]].
+    exists t1. exists t2. exists t3. destruct E as [E1 [E2 E3]].
+    split. apply E1. split. apply E2. intros m. apply MUnionR. apply E3.
+  - (* MStar0 *)
+    simpl. intros H. inversion H. apply pumping_constant_0_false in H1. destruct H1.
+  - (* MStarApp *)
+    simpl. intros H. simpl in IH2.
+    destruct s1 eqn:E1.
+    + simpl in H. apply IH2 in H. destruct H as [t1 [t2 [t3 E]]].
+      exists t1. exists t2. exists t3. apply E.
+    + exists []. exists s1. exists s2.
+    simpl. split. rewrite E1. reflexivity. split.
+      * unfold not. rewrite E1. intros H'. discriminate H'.
+      * intros m. rewrite <- E1 in Hmatch1. apply napp_star. apply Hmatch1. apply Hmatch2.
+  (* FILL IN HERE *) Qed.
+(** ["here!"] *)
+
 
 (** **** Exercise: 5 stars, advanced, optional (pumping)
 
