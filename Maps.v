@@ -188,7 +188,8 @@ Proof. reflexivity. Qed.
 Lemma t_apply_empty : forall (A : Type) (x : string) (v : A),
   (_ !-> v) x = v.
 Proof.
-  (* FILL IN HERE *) Admitted.
+  intros A x v. reflexivity.
+  (* FILL IN HERE *) Qed.
 (** [] *)
 
 (** **** Exercise: 2 stars, standard, optional (t_update_eq)
@@ -200,7 +201,9 @@ Proof.
 Lemma t_update_eq : forall (A : Type) (m : total_map A) x v,
   (x !-> v ; m) x = v.
 Proof.
-  (* FILL IN HERE *) Admitted.
+  intros A m x v.
+  unfold t_update. rewrite eqb_refl. reflexivity.
+  (* FILL IN HERE *) Qed.
 (** [] *)
 
 (** **** Exercise: 2 stars, standard, optional (t_update_neq)
@@ -213,7 +216,14 @@ Theorem t_update_neq : forall (A : Type) (m : total_map A) x1 x2 v,
   x1 <> x2 ->
   (x1 !-> v ; m) x2 = m x2.
 Proof.
-  (* FILL IN HERE *) Admitted.
+  intros A m x1 x2 v.
+  unfold t_update.
+  intros H. assert (G: (x1 =? x2)%string = false).
+  { destruct (x1 =? x2)%string eqn:Heq.
+  - apply eqb_eq in Heq. apply H in Heq. destruct Heq.
+  - reflexivity. }
+  rewrite G. reflexivity. 
+  (* FILL IN HERE *) Qed.
 (** [] *)
 
 (** **** Exercise: 2 stars, standard, optional (t_update_shadow)
@@ -227,7 +237,14 @@ Proof.
 Lemma t_update_shadow : forall (A : Type) (m : total_map A) x v1 v2,
   (x !-> v2 ; x !-> v1 ; m) = (x !-> v2 ; m).
 Proof.
-  (* FILL IN HERE *) Admitted.
+  intros A m x v1 v2.
+  unfold t_update. 
+  apply functional_extensionality.
+  intros x'.
+  destruct (x=?x')%string eqn:Heq.
+  - reflexivity.
+  - reflexivity.
+  (* FILL IN HERE *) Qed.
 (** [] *)
 
 (** **** Exercise: 2 stars, standard (t_update_same)
@@ -244,7 +261,14 @@ Proof.
 Theorem t_update_same : forall (A : Type) (m : total_map A) x,
   (x !-> m x ; m) = m.
 Proof.
-  (* FILL IN HERE *) Admitted.
+  intros A m x.
+  apply functional_extensionality.
+  intros x'.
+  unfold t_update.
+  destruct (eqb_spec x x').
+  - rewrite e. reflexivity.
+  - reflexivity.
+  (* FILL IN HERE *) Qed.
 (** [] *)
 
 (** **** Exercise: 3 stars, standard, especially useful (t_update_permute)
@@ -260,7 +284,15 @@ Theorem t_update_permute : forall (A : Type) (m : total_map A)
   =
   (x2 !-> v2 ; x1 !-> v1 ; m).
 Proof.
-  (* FILL IN HERE *) Admitted.
+  intros A m v1 v2 x1 x2 H.
+  apply functional_extensionality.
+  intros x. unfold t_update.
+  destruct (eqb_spec x1 x).
+  - rewrite e in H. assert (G : (x2=?x)%string = false). 
+  { destruct (eqb_spec x2 x).  - apply H in e0. destruct e0. - reflexivity. }
+  rewrite G. reflexivity.
+  - reflexivity.
+  (* FILL IN HERE *) Qed.
 (** [] *)
 
 (* ################################################################# *)
