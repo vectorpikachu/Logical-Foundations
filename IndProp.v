@@ -1982,6 +1982,7 @@ Proof.
     requiring that [s2 <> []], it also requires that [length s1 +
     length s2 <= pumping_constant re]. *)
 
+
 Lemma pumping : forall T (re : reg_exp T) s,
   s =~ re ->
   pumping_constant re <= length s ->
@@ -2000,6 +2001,10 @@ Proof.
        | re | s1 s2 re Hmatch1 IH1 Hmatch2 IH2 ].
   - (* MEmpty *)
     simpl. intros contra. inversion contra.
+  - (* MChar *)
+    simpl. intros contra. inversion contra. inversion H0.
+  - (* MApp *)
+    
   (* FILL IN HERE *) Admitted.
 
 End Pumping.
@@ -2082,7 +2087,10 @@ Qed.
 (** **** Exercise: 2 stars, standard, especially useful (reflect_iff) *)
 Theorem reflect_iff : forall P b, reflect P b -> (P <-> b = true).
 Proof.
-  (* FILL IN HERE *) Admitted.
+  intros P b H. split.
+  - inversion H. intros HP. reflexivity. unfold not in H0. intros HP. apply H0 in HP. destruct HP.
+  - inversion H. intros H2. apply H0. intros H2. discriminate H2.
+  Qed.
 (** [] *)
 
 (** We can think of [reflect] as a variant of the usual "if and only
@@ -2141,7 +2149,17 @@ Theorem eqbP_practice : forall n l,
   count n l = 0 -> ~(In n l).
 Proof.
   intros n l Hcount. induction l as [| m l' IHl'].
-  (* FILL IN HERE *) Admitted.
+  - simpl in Hcount. simpl. unfold not. intros HF. destruct HF.
+  - simpl. unfold not. intros Hc. destruct Hc as [H1 | H2].
+    + rewrite H1 in Hcount. simpl in Hcount. 
+      assert (G : reflect (n=n) (n =? n)). { apply eqbP. }
+      inversion G. symmetry in H. rewrite H in Hcount. discriminate Hcount.
+        unfold not in H0. apply H0. reflexivity.
+    + simpl in Hcount. assert (G: forall x y, x + y =0 -> x = 0 /\ y = 0).
+      { intros x y H. destruct x. simpl in H. split. reflexivity. apply H. discriminate H. }
+      apply G in Hcount. destruct Hcount as [H1' H2'].
+      apply IHl' in H2'. unfold not in H2'. apply H2' in H2. destruct H2. 
+  (* FILL IN HERE *) Qed.
 (** [] *)
 
 (** This small example shows reflection giving us a small gain in
@@ -2164,7 +2182,7 @@ Proof.
 
     Formulating inductive definitions of properties is an important
     skill you'll need in this course.  Try to solve this exercise
-    without any help.
+   without any help.
 
     We say that a list "stutters" if it repeats the same element
     consecutively.  (This is different from not containing duplicates:
@@ -2174,8 +2192,11 @@ Proof.
     [nostutter]. *)
 
 Inductive nostutter {X:Type} : list X -> Prop :=
+  | nil_nostutter : nostutter []
+  | one_nostutter (x : X) : nostutter [x]
+  | hd_nostutter (x y : X) (t : list X) (H1 : ~(x = y)) (H2 : nostutter (y::t)) : nostutter ([x; y] ++ t). 
  (* FILL IN HERE *)
-.
+
 (** Make sure each of these tests succeeds, but feel free to change
     the suggested proof (in comments) if the given one doesn't work
     for you.  Your definition might be different from ours and still
@@ -2187,27 +2208,31 @@ Inductive nostutter {X:Type} : list X -> Prop :=
     example with more basic tactics.)  *)
 
 Example test_nostutter_1: nostutter [3;1;4;1;5;6].
-(* FILL IN HERE *) Admitted.
+Proof. repeat constructor; apply eqb_neq; auto.
+(* FILL IN HERE *) Qed.
 (* 
   Proof. repeat constructor; apply eqb_neq; auto.
   Qed.
 *)
 
 Example test_nostutter_2:  nostutter (@nil nat).
-(* FILL IN HERE *) Admitted.
+Proof. apply nil_nostutter.
+(* FILL IN HERE *) Qed.
 (* 
   Proof. repeat constructor; apply eqb_neq; auto.
   Qed.
 *)
 
 Example test_nostutter_3:  nostutter [5].
-(* FILL IN HERE *) Admitted.
+Proof. repeat constructor.
+(* FILL IN HERE *) Qed.
 (* 
   Proof. repeat constructor; auto. Qed.
 *)
 
 Example test_nostutter_4:      not (nostutter [3;1;1;4]).
-(* FILL IN HERE *) Admitted.
+Proof. unfold not. intros H. inversion H. inversion H4. destruct H7. reflexivity.
+(* FILL IN HERE *) Qed.
 (* 
   Proof. intro.
   repeat match goal with

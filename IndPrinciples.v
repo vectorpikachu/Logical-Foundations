@@ -71,7 +71,10 @@ Proof.
 Theorem plus_one_r' : forall n:nat,
   n + 1 = S n.
 Proof.
-  (* FILL IN HERE *) Admitted.
+  apply nat_ind.
+  - simpl. reflexivity.
+  - intros n H. rewrite add_comm. simpl. reflexivity.
+  (* FILL IN HERE *) Qed.
 (** [] *)
 
 (** Coq generates induction principles for every datatype
@@ -189,14 +192,19 @@ Inductive booltree : Type :=
 
 Definition booltree_property_type : Type := booltree -> Prop.
 
-Definition base_case (P : booltree_property_type) : Prop
-  (* REPLACE THIS LINE WITH ":= _your_definition_ ." *). Admitted.
+Definition base_case (P : booltree_property_type) : Prop :=
+  P bt_empty.
+  (* REPLACE THIS LINE WITH ":= _your_definition_ ." *)
 
-Definition leaf_case (P : booltree_property_type) : Prop
-  (* REPLACE THIS LINE WITH ":= _your_definition_ ." *). Admitted.
+Definition leaf_case (P : booltree_property_type) : Prop :=
+  forall b : bool, P (bt_leaf b).
+  (* REPLACE THIS LINE WITH ":= _your_definition_ ." *)
 
-Definition branch_case (P : booltree_property_type) : Prop
-  (* REPLACE THIS LINE WITH ":= _your_definition_ ." *). Admitted.
+Definition branch_case (P : booltree_property_type) : Prop :=
+  forall (b : bool) (t1 : booltree), P t1 ->
+   forall (t2 : booltree), P t2 ->
+   P (bt_branch b t1 t2).
+  (* REPLACE THIS LINE WITH ":= _your_definition_ ." *)
 
 Definition booltree_ind_type :=
   forall (P : booltree_property_type),
@@ -212,7 +220,8 @@ Definition booltree_ind_type :=
     same type as what you just defined. *)
 
 Theorem booltree_ind_type_correct : booltree_ind_type.
-Proof. (* FILL IN HERE *) Admitted.
+Proof. exact booltree_ind.
+(* FILL IN HERE *) Qed.
 
 (** [] *)
 
@@ -228,9 +237,11 @@ Proof. (* FILL IN HERE *) Admitted.
     Give an [Inductive] definition of [Toy], such that the induction
     principle Coq generates is that given above: *)
 
-Inductive Toy : Type :=
+Inductive Toy : Type := 
+  | con1 (b : bool)
+  | con2 (n : nat) (t : Toy).
   (* FILL IN HERE *)
-.
+
 
 (** Show that your definition is correct by proving the following theorem.
     You should be able to instantiate [f] and [g] with your two constructors,
@@ -243,7 +254,7 @@ Theorem Toy_correct : exists f g,
     (forall b : bool, P (f b)) ->
     (forall (n : nat) (t : Toy), P t -> P (g n t)) ->
     forall t : Toy, P t.
-Proof. (* FILL IN HERE *) Admitted.
+Proof. exists con1. exists con2. exact Toy_ind. (* FILL IN HERE *) Qed.
 
 (** [] *)
 
